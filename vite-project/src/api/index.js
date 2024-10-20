@@ -3,17 +3,17 @@
 import axios from "axios";
 
 
-// 二次封装axios;
-const service = axios.create({
-    baseURL: "http://localhost:9099/api/v50", // 基础 URL
-    timeout: 10000, // 请求超时时间
-});
-
-
+// // 二次封装axios;
 // const service = axios.create({
-//     baseURL: "/api/v50", // 基础 URL
-//     timeout: 5000, // 请求超时时间
+//     baseURL: "http://localhost:9099/api/v50", // 基础 URL
+//     timeout: 10000, // 请求超时时间
 // });
+
+
+const service = axios.create({
+    baseURL: "/api/v50", // 基础 URL
+    timeout: 5000, // 请求超时时间
+});
 
 
 // 添加响应拦截器
