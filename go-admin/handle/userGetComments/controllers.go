@@ -37,6 +37,8 @@ func Controllers(g *gin.Context) {
 		comments    []model.ModelIssue
 		err         error
 		resp_coment []modelComment
+		url_web     string
+		url_api     string
 	)
 
 	json, _ := g.Get("json")
@@ -65,6 +67,20 @@ func Controllers(g *gin.Context) {
 		})
 	}
 
+	// 拼接URL
+	if entery.JsonEntery.Https.Enabled {
+		if entery.JsonEntery.Https.Port == "443" {
+			url_web = fmt.Sprintf("https://%s/view/read/%s", entery.JsonEntery.Address, json.(model.ModelData).Guid)
+			url_api = fmt.Sprintf("https://%s/api/v50/user/get_content?guid%s&password=%s", entery.JsonEntery.Address, json.(model.ModelData).Guid, json.(model.ModelData).Password)
+		} else {
+			url_web = fmt.Sprintf("https://%s:%s/view/read/%s", entery.JsonEntery.Address, entery.JsonEntery.Https.Port, json.(model.ModelData).Guid)
+			url_api = fmt.Sprintf("https://%s:%s/api/v50/user/get_content?guid%s&password=%s", entery.JsonEntery.Address, entery.JsonEntery.Https.Port, json.(model.ModelData).Guid, json.(model.ModelData).Password)
+		}
+	} else {
+		url_web = fmt.Sprintf("http://%s:%s/view/read/%s", entery.JsonEntery.Address, entery.JsonEntery.Http.Port, json.(model.ModelData).Guid)
+		url_api = fmt.Sprintf("http://%s:%s/api/v50/user/get_content?guid%s&password=%s", entery.JsonEntery.Address, entery.JsonEntery.Http.Port, json.(model.ModelData).Guid, json.(model.ModelData).Password)
+	}
+
 	// 拼接组合数据
 	data := modelMain{
 		Type:         json.(model.ModelData).Type,
@@ -72,15 +88,10 @@ func Controllers(g *gin.Context) {
 		IP:           ip.(string),
 		AllowComment: json.(model.ModelData).AllowComment,
 		URL: modelUrl{
-			Web: fmt.Sprintf("http://%s:%s/#/view/read/%s", entery.JsonEntery.Address, entery.JsonEntery.ServicePort, json.(model.ModelData).Guid),
-			API: fmt.Sprintf("http://%s:%s/api/v50/user/get_content?guid%s&password=%s", entery.JsonEntery.Address, entery.JsonEntery.ServicePort, json.(model.ModelData).Guid, json.(model.ModelData).Password),
+			Web: url_web,
+			API: url_api,
 		},
 		Comments: resp_coment,
-	}
-
-	// 是否只读一次
-	if json.(model.ModelData).Once {
-		_, _ = config.Engine.Table(new(model.ModelData)).Where("`guid`=?", json.(model.ModelData).Guid).Delete()
 	}
 
 	g.JSON(constant.CODE200, gin.H{

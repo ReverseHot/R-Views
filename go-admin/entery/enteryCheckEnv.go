@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	config     = "./config.json"
+	config     = "./default/config/config.json"
 	JsonEntery model.StructEntery
 )
 
@@ -25,21 +25,28 @@ func EnteryCheckEnv() {
 		// 否则自动从文件读取配置
 		readConfig()
 	}
-
-	// 给用户看看参数内容有没有问题
-	ui.PrintInfo("后端端口: " + JsonEntery.ServicePort)
-	ui.PrintInfo("URL指定: " + JsonEntery.Address)
 }
 
 // 获取用户输入
 func getUserInput() {
 
-	// 询问用户输入第一个端口号
-	survey.AskOne(&survey.Input{Message: "请指定服务端口", Default: "9099"}, &JsonEntery.ServicePort)
+	// 第一步，先询问用户是否需要启用SSL
+	survey.AskOne(&survey.Select{Message: "是否需要启用SSL?", Options: []string{"true", "false"}, Default: "false"}, &JsonEntery.Https.Enabled)
 
-	// 服务器域名或者ipv4地址，必须提供
-	survey.AskOne(&survey.Input{Message: "请指定域名(可提供IPV4)", Default: "localhost"}, &JsonEntery.Address)
+	// 如果用户启用了SSL，则只需要填写SSL相关的参数即可
+	if JsonEntery.Https.Enabled {
+		survey.AskOne(&survey.Input{Message: "SSL端口", Default: "443"}, &JsonEntery.Https.Port)
+		survey.AskOne(&survey.Input{Message: "SSL证书文件路径"}, &JsonEntery.Https.CertFile)
+		survey.AskOne(&survey.Input{Message: "SSL密钥文件路径"}, &JsonEntery.Https.KeyFile)
+	} else {
+		// 否则只需要提供HTTP端口即可
+		survey.AskOne(&survey.Input{Message: "HTTP端口", Default: "9099"}, &JsonEntery.Http.Port)
+	}
 
+	// 最后一步，询问用户提供域名或IPV4地址
+	survey.AskOne(&survey.Input{Message: "请提供你的域名或IP地址", Default: "localhost"}, &JsonEntery.Address)
+
+	// 序列化配置
 	value, err := json.Marshal(JsonEntery)
 	if err != nil {
 		ui.PrintError("配置序列化失败: " + err.Error())

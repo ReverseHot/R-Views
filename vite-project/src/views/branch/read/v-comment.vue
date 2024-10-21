@@ -2,7 +2,6 @@
     <div>
 
         <v-card>
-
             <div v-if="store.loader_content">
                 <v-skeleton-loader :elevation="2" type="list-item-avatar@4"></v-skeleton-loader>
             </div>
@@ -14,11 +13,10 @@
                     </template>
                 </v-list>
             </div>
-        </v-card>
 
-        <v-divider class="border-opacity-30"></v-divider>
 
-        <v-card>
+            <v-divider class="border-opacity-30"></v-divider>
+
             <div style="padding: 30px;">
                 <v-text-field v-model="form.email" label="邮箱" prepend-icon="mdi-email-outline" variant="outlined"
                     density="compact"></v-text-field>

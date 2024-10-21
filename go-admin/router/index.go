@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"go-admin/entery"
+	"go-admin/ui"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,9 +16,14 @@ func InitRouterIndex() {
 	// 更改为发布模式
 	gin.SetMode(gin.ReleaseMode)
 
-	// =========================================
-	// 静态资源
-	r.Static("/r", "./dist")
+	// // =========================================
+	// // 静态资源
+	// r.Static("/r", "./default/dist")
+
+	// // 捕获未匹配的路由，返回 index.html 交给 Vue-router 处理
+	// r.NoRoute(func(c *gin.Context) {
+	// 	c.File("./default/dist/index.html")
+	// })
 
 	// =========================================
 	// 注册路由
@@ -26,7 +32,18 @@ func InitRouterIndex() {
 		InitRouterGroupUser(main) // 注册用户模块路由
 	}
 
-	r.Run(fmt.Sprintf(":%s", entery.JsonEntery.ServicePort))
+	// 如果启用了 SSL
+	if entery.JsonEntery.Https.Enabled {
+		err := r.RunTLS(fmt.Sprintf(":%s", entery.JsonEntery.Https.Port), entery.JsonEntery.Https.CertFile, entery.JsonEntery.Https.KeyFile)
+		if err != nil {
+			ui.PrintError(err.Error())
+		}
+	} else {
+		err := r.Run(fmt.Sprintf(":%s", entery.JsonEntery.Http.Port))
+		if err != nil {
+			ui.PrintError(err.Error())
+		}
+	}
 }
 
 // 解决跨域
